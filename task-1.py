@@ -1,6 +1,7 @@
 from typing import List
 from collections import UserDict
 from datetime import datetime, timedelta
+from tabulate import tabulate
 
 class Field:
     def __init__(self, value: str):
@@ -71,6 +72,15 @@ class AddressBook(UserDict):
         today = datetime.now().date()
         upcoming_week = today + timedelta(days=7)
         return [record for record in self.data.values() if record.birthday and today <= datetime.strptime(record.birthday.value, "%d.%m.%Y").date() < upcoming_week]
+
+    def show_all_contacts(self):
+        headers = ["Name", "Phone Numbers", "Birthday"]
+        data = []
+        for record in self.data.values():
+            phones = '; '.join(phone.value for phone in record.phones)
+            birthday = record.birthday.value if record.birthday else ""
+            data.append([record.name.value, phones, birthday])
+        return tabulate(data, headers=headers, tablefmt="grid")
 
 
 def main():
@@ -150,30 +160,15 @@ def main():
                 for record in upcoming_birthdays:
                     print(f"{record.name.value}'s birthday is on {record.birthday.value}.")
 
+        if command == "all":
+            all_contacts = book.show_all_contacts()
+            if not all_contacts:
+                print("No contacts in the address book.")
+            else:
+                print(all_contacts)
+
         else:
             print("Invalid command.")
 
 if __name__ == "__main__":
     main()
-    
-'''
-Enter a command: add John 1234567890
-Contact added.
-Enter a command: add Jane 9876a12345
-Invalid format. Please use: add [name] [phone]
-Enter a command: add Jane
-Invalid format. Please use: add [name] [phone]
-Enter a command: change Michael 1234567890 9876543210
-Contact not found.
-Enter a command: phone Michael
-Contact not found.
-Enter a command: add-birthday John 1990-12-25
-Invalid date format. Use DD.MM.YYYY
-Enter a command: add-birthday John 25.12.1990
-Birthday added.
-Enter a command: birthdays
-Upcoming birthdays:
-John's birthday is on 25.12.1990.
-Enter a command: close
-Good bye
-'''
