@@ -73,6 +73,15 @@ class AddressBook(UserDict):
         upcoming_week = today + timedelta(days=7)
         return [record for record in self.data.values() if record.birthday and today <= datetime.strptime(record.birthday.value, "%d.%m.%Y").date() < upcoming_week]
 
+    def show_all_contacts(self):
+        headers = ["Name", "Phone Numbers", "Birthday"]
+        data = []
+        for record in self.data.values():
+            phones = '; '.join(phone.value for phone in record.phones)
+            birthday = record.birthday.value if record.birthday else ""
+            data.append([record.name.value, phones, birthday])
+        return tabulate(data, headers=headers, tablefmt="grid")
+
 
 def main():
     book = AddressBook()
@@ -142,7 +151,7 @@ def main():
                 else:
                     print("Contact not found.")
 
-        elif command == "birthdays":
+        if command == "birthdays":
             upcoming_birthdays = book.get_upcoming_birthdays()
             if not upcoming_birthdays:
                 print("No upcoming birthdays in the next week.")
@@ -151,13 +160,12 @@ def main():
                 for record in upcoming_birthdays:
                     print(f"{record.name.value}'s birthday is on {record.birthday.value}.")
 
-        elif command == "all":
-            if not book.data:
-                print("No contacts found.")
+        if command == "all":
+            all_contacts = book.show_all_contacts()
+            if not all_contacts:
+                print("No contacts in the address book.")
             else:
-                headers = ["Name", "Phones", "Birthday"]
-                table_data = [[record.name.value, '; '.join(phone.value for phone in record.phones), record.birthday.value if record.birthday else "N/A"] for record in book.data.values()]
-                print(tabulate(table_data, headers=headers, tablefmt="grid"))
+                print(all_contacts)
 
         else:
             print("Invalid command.")
