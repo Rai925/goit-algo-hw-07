@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 class Field:
     def __init__(self, value: str):
         if not value:
-            raise ValueError
+            raise ValueError("Field cannot be empty.")
         self.value = value
 
     def __str__(self):
@@ -14,13 +14,13 @@ class Field:
 class Name(Field):
     def __init__(self, value: str):
         if not value.strip():
-            raise ValueError
+            raise ValueError("Name cannot be empty.")
         super().__init__(value)
 
 class Phone(Field):
     def __init__(self, value: str):
         if not value.isdigit() or len(value) != 10:
-            raise ValueError
+            raise ValueError("Invalid phone number. Please provide a 10-digit phone number.")
         super().__init__(value)
 
 class Birthday(Field):
@@ -28,7 +28,7 @@ class Birthday(Field):
         try:
             datetime.strptime(value, "%d.%m.%Y")
         except ValueError:
-            raise ValueError("Invalid date format. Use DD.MM.YYYY")
+            raise ValueError("Invalid date format. Please use DD.MM.YYYY.")
         super().__init__(value)
 
 class Record:
@@ -92,10 +92,13 @@ def main():
                 print("Invalid format. Please use: add [name] [phone]")
             else:
                 name, phone = args
-                record = Record(name)
-                record.add_phone(phone)
-                book.add_record(record)
-                print("Contact added.")
+                try:
+                    record = Record(name)
+                    record.add_phone(phone)
+                    book.add_record(record)
+                    print("Contact added.")
+                except ValueError as e:
+                    print(e)
 
         if command == "change":
             if len(args) != 3:
@@ -152,6 +155,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
 '''
 Enter a command: add John 1234567890
 Contact added.
