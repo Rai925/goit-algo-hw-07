@@ -96,6 +96,7 @@ def main():
 
         if command == "hello":
             print("How can I help you?")
+            continue
 
         if command == "add":
             if len(args) != 2:
@@ -109,6 +110,7 @@ def main():
                     print("Contact added.")
                 except ValueError as e:
                     print(e)
+            continue
 
         if command == "change":
             if len(args) != 3:
@@ -124,6 +126,7 @@ def main():
                         print(e)
                 else:
                     print("Contact not found.")
+            continue
 
         if command == "phone":
             if len(args) != 1:
@@ -135,6 +138,7 @@ def main():
                     print(record)
                 else:
                     print("Contact not found.")
+            continue
 
         if command == "add-birthday":
             if len(args) != 2:
@@ -150,6 +154,7 @@ def main():
                         print(e)
                 else:
                     print("Contact not found.")
+            continue
 
         if command == "birthdays":
             upcoming_birthdays = book.get_upcoming_birthdays()
@@ -159,6 +164,7 @@ def main():
                 print("Upcoming birthdays:")
                 for record in upcoming_birthdays:
                     print(f"{record.name.value}'s birthday is on {record.birthday.value}.")
+            continue
 
         if command == "all":
             all_contacts = book.show_all_contacts()
@@ -166,9 +172,9 @@ def main():
                 print("No contacts in the address book.")
             else:
                 print(all_contacts)
+            continue
 
-        else:
-            print("Invalid command.")
+        print("Invalid command.")
 
 if __name__ == "__main__":
     main()
