@@ -44,13 +44,24 @@ class Record:
     def add_birthday(self, birthday: str):
         self.birthday = Birthday(birthday)
 
+    def remove_phone(self, phone_number: str):
+        self.phones = [phone for phone in self.phones if phone.value != phone_number]
+
     def edit_phone(self, old_phone_number: str, new_phone_number: str):
+        if not new_phone_number.isdigit() or len(new_phone_number) != 10:
+            raise ValueError("Invalid phone number. Please provide a 10-digit phone number.")
         for phone in self.phones:
             if phone.value == old_phone_number:
                 phone.value = new_phone_number
                 break
         else:
             raise ValueError("Phone number not found.")
+
+    def find_phone(self, phone_number: str) -> Phone:
+        for phone in self.phones:
+            if phone.value == phone_number:
+                return phone
+        return None
 
     def __str__(self):
         phone_numbers = '; '.join(phone.value for phone in self.phones)
@@ -73,15 +84,6 @@ class AddressBook(UserDict):
         upcoming_week = today + timedelta(days=7)
         return [record for record in self.data.values() if record.birthday and today <= datetime.strptime(record.birthday.value, "%d.%m.%Y").date() < upcoming_week]
 
-    def show_all_contacts(self):
-        headers = ["Name", "Phone Numbers", "Birthday"]
-        data = []
-        for record in self.data.values():
-            phones = '; '.join(phone.value for phone in record.phones)
-            birthday = record.birthday.value if record.birthday else ""
-            data.append([record.name.value, phones, birthday])
-        return tabulate(data, headers=headers, tablefmt="grid")
-
 
 def main():
     book = AddressBook()
@@ -94,25 +96,27 @@ def main():
             print("Good bye!")
             break
 
-        if command == "hello":
+        elif command == "hello":
             print("How can I help you?")
-            continue
 
-        if command == "add":
+        elif command == "add":
             if len(args) != 2:
                 print("Invalid format. Please use: add [name] [phone]")
             else:
                 name, phone = args
                 try:
-                    record = Record(name)
-                    record.add_phone(phone)
-                    book.add_record(record)
-                    print("Contact added.")
+                    record = book.find(name)
+                    if not record:
+                        record = Record(name)
+                        book.add_record(record)
+                        record.add_phone(phone)
+                        print("Contact added.")
+                    else:
+                        print("Contact with this name already exists.")
                 except ValueError as e:
                     print(e)
-            continue
-
-        if command == "change":
+            
+        elif command == "change":
             if len(args) != 3:
                 print("Invalid format. Please use: change [name] [old phone] [new phone]")
             else:
@@ -126,9 +130,8 @@ def main():
                         print(e)
                 else:
                     print("Contact not found.")
-            continue
 
-        if command == "phone":
+        elif command == "phone":
             if len(args) != 1:
                 print("Invalid format. Please use: phone [name]")
             else:
@@ -138,9 +141,8 @@ def main():
                     print(record)
                 else:
                     print("Contact not found.")
-            continue
 
-        if command == "add-birthday":
+        elif command == "add-birthday":
             if len(args) != 2:
                 print("Invalid format. Please use: add-birthday [name] [birthday (DD.MM.YYYY)]")
             else:
@@ -154,9 +156,8 @@ def main():
                         print(e)
                 else:
                     print("Contact not found.")
-            continue
 
-        if command == "birthdays":
+        elif command == "birthdays":
             upcoming_birthdays = book.get_upcoming_birthdays()
             if not upcoming_birthdays:
                 print("No upcoming birthdays in the next week.")
@@ -164,17 +165,17 @@ def main():
                 print("Upcoming birthdays:")
                 for record in upcoming_birthdays:
                     print(f"{record.name.value}'s birthday is on {record.birthday.value}.")
-            continue
 
-        if command == "all":
-            all_contacts = book.show_all_contacts()
-            if not all_contacts:
-                print("No contacts in the address book.")
+        elif command == "all":
+            if not book.data:
+                print("No contacts found.")
             else:
-                print(all_contacts)
-            continue
+                headers = ["Name", "Phones", "Birthday"]
+                table_data = [[record.name.value, '; '.join(phone.value for phone in record.phones), record.birthday.value if record.birthday else "N/A"] for record in book.data.values()]
+                print(tabulate(table_data, headers=headers, tablefmt="grid"))
 
-        print("Invalid command.")
+        else:
+            print("Invalid command.")
 
 if __name__ == "__main__":
     main()
