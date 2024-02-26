@@ -80,10 +80,43 @@ class AddressBook(UserDict):
             del self.data[name]
 
     def get_upcoming_birthdays(self):
-        today = datetime.now().date()
-        upcoming_week = today + timedelta(days=7)
-        return [record for record in self.data.values() if record.birthday and today <= datetime.strptime(record.birthday.value, "%d.%m.%Y").date() < upcoming_week]
+        tdate = datetime.today().date()
+        upcoming_birthdays = []
 
+        for record in self.data.values():
+            if record.birthday:
+                bdate_components = record.birthday.value.split('.')
+                bdate = datetime.strptime(f"{tdate.year}-{bdate_components[1]}-{bdate_components[0]}", "%Y-%m-%d").date()
+                days_between = (bdate - tdate).days
+                week_day = bdate.isoweekday()
+
+                if 0 <= days_between < 7 and (week_day < 6 or (bdate + timedelta(days=(1 if week_day == 6 else 2))).weekday() == 0):
+                    formatted_birthday = bdate.strftime("%d %B").replace(" 0", " ")
+                    upcoming_birthdays.append(f"{record.name.value} {formatted_birthday}")
+
+        return upcoming_birthdays
+
+    def show_birthday(self, name: str):
+        record = self.find(name)
+        if record and record.birthday:
+            print(f"{record.name.value}'s birthday is on {record.birthday.value}")
+        else:
+            print(f"No birthday found for {name}")
+
+    def show_all_contacts(self):
+        if not self.data:
+            return "No contacts found."
+        else:
+            headers = ["Name", "Phones", "Birthday"]
+            table_data = [[record.name.value, '; '.join(phone.value for phone in record.phones), record.birthday.value if record.birthday else "N/A"] for record in self.data.values()]
+            return tabulate(table_data, headers=headers, tablefmt="grid")
+        
+    def delete_contact(self, name: str):
+        if name in self.data:
+            del self.data[name]
+            print(f"Contact '{name}' deleted.")
+        else:
+            print(f"Contact '{name}' not found.")
 
 def main():
     book = AddressBook()
@@ -156,6 +189,21 @@ def main():
                         print(e)
                 else:
                     print("Contact not found.")
+        
+        elif command == "delete":
+            if len(args) != 1:
+                print("Invalid format. Please use: delete [name]")
+            else:
+                name = args[0]
+                book.delete_contact(name)
+            
+                    
+        elif command == "show-birthday":
+            if len(args) != 1:
+                print("Invalid format. Please use: show-birthday [name]")
+            else:
+                name = args[0]
+                book.show_birthday(name)
 
         elif command == "birthdays":
             upcoming_birthdays = book.get_upcoming_birthdays()
@@ -164,15 +212,10 @@ def main():
             else:
                 print("Upcoming birthdays:")
                 for record in upcoming_birthdays:
-                    print(f"{record.name.value}'s birthday is on {record.birthday.value}.")
+                    print(record)
 
         elif command == "all":
-            if not book.data:
-                print("No contacts found.")
-            else:
-                headers = ["Name", "Phones", "Birthday"]
-                table_data = [[record.name.value, '; '.join(phone.value for phone in record.phones), record.birthday.value if record.birthday else "N/A"] for record in book.data.values()]
-                print(tabulate(table_data, headers=headers, tablefmt="grid"))
+            print(book.show_all_contacts())
 
         else:
             print("Invalid command.")
