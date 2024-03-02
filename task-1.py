@@ -90,10 +90,7 @@ class Record:
 
 class AddressBook(UserDict):
     def add_record(self, record: Record):
-        if record.name.value in self.data:
-            self.data[record.name.value].append(record)
-        else:
-            self.data[record.name.value] = [record]
+            self.data[record.name.value] = record
             
     def get_upcoming_birthdays(self):
         tdate = datetime.today().date()
