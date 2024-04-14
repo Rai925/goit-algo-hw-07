@@ -112,7 +112,7 @@ class AddressBook(UserDict):
 
     def find(self, name: str) -> Record:
         if name in self.data:
-            return self.data[name][-1]
+            return self.data[name]
         else:
             return None
         
